@@ -1,40 +1,46 @@
-import discord
-from lib.messages import send_message
+from nextcord.ext import commands
+import nextcord
+import random
+import os
+from dotenv import load_dotenv
+
+try:
+
+    intents = nextcord.Intents.default()
+    intents.message_content = True
+    client = commands.Bot(command_prefix = '!', intents = intents)
+
+except Exception as e:
+    print(e)
 
 
-class Bot:
-
-    def __init__(self):
-        self.client = discord.Client(intents = discord.Intents.all())
-
-        @self.client.event
-        async def on_connect():
-            print(f'{self.client.user.name} has connected!')
-
-        @self.client.event
-        async def on_ready():
-            print(f'{self.client.user.name} is ready!')
-
-        @self.client.event
-        async def on_message(message):
-
-            if message.author == self.client.user:  # to avoid loop
-                return
-
-            user_message = message.content
-            author = message.author
-            channel = message.channel
-
-            print(f'user {author} has said {user_message} on {channel}')  # for self reference
-
-            if user_message[0] == '!':
-                pass
-
-            elif user_message[0] == '.':
-                await send_message(message, user_message, True)
-
-            else:
-                await send_message(message, user_message, False)
+@client.command(name = 'hey')
+async def hey(ctx):
+    await ctx.send(f'Hey {ctx.author.name}!')
 
 
+@client.command(name = 'toss', aliases = ['TOSS', 'Toss'])
+async def toss(ctx):
+    res = random.choice(['Its Heads!', 'Its Tales!'])
+    await ctx.send(res)
+
+
+@client.command(name = 'ping')
+async def ping(ctx):
+    await ctx.send(f'{round(client.latency * 1000, 2)} ms!')
+
+
+@client.event
+async def on_ready():
+    print(f'{client.user.name} is ready!')
+
+
+try:
+    load_dotenv(dotenv_path = '../path.env')
+    PATH = os.getenv('TOKEN_PATH')
+    with open(PATH, 'r') as TOKEN:
+        client.run(TOKEN.read())
+        TOKEN.close()
+except Exception as e:
+    print(e)
 

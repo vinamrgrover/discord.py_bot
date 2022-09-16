@@ -1,0 +1,17 @@
+{
+    "Essential Commands" :
+    {
+        "help" : "Displays a wonderful command help menu!"
+    },
+
+    "Basic Commands" :
+    {
+        "hey" : "Otter will greet you!"
+    },
+
+    "Fun Commands" :
+    {
+        "ping" : "Shows your network latency (ping)",
+        "toss" : "Flip a Coin!"
+    }
+}

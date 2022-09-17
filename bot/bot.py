@@ -1,6 +1,6 @@
 from nextcord.ext import commands
 import nextcord
-import random, os, json
+import random, os, json, requests
 from dotenv import load_dotenv
 from nextcord import Embed, ButtonStyle
 from nextcord.ui import Button, View
@@ -82,6 +82,26 @@ async def temp(ctx):
     view.add_item(button)
 
     message_sent = await ctx.send(embed = embed, view = view)
+
+
+@client.command(name = 'dog')
+async def dog(ctx):
+    url = 'https://dog.ceo/api/breeds/image/random'
+    json_response = requests.get(url).json()
+    image = json_response['message']
+    await ctx.send(image)
+
+
+@client.command(name = 'cat')
+async def cat(ctx):
+    load_dotenv(dotenv_path = '../key.env')
+    api_key = os.getenv('API_KEY')
+    headers = {'x-api-key' : api_key}
+    if api_key is not None:
+        url = 'https://api.thecatapi.com/v1/images/search'
+        json_response = requests.get(url, headers = headers).json()[0]
+        image = json_response['url']
+        await ctx.send(image)
 
 
 @client.event

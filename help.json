@@ -12,6 +12,8 @@
     "Fun Commands" :
     {
         "ping" : "Shows your network latency (ping)",
-        "toss" : "Flip a Coin!"
+        "toss" : "Flip a Coin!",
+        "dog" : "Get a cute Doggo pic!",
+        "cat" : "Get a cute Kitty pic!"
     }
 }

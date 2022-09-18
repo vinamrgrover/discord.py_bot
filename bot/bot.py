@@ -101,7 +101,7 @@ async def cat(ctx):
         url = 'https://api.thecatapi.com/v1/images/search'
         json_response = requests.get(url, headers = headers).json()[0]
         image = json_response['url']
-        await ctx.sendimage
+        await ctx.send(image)
 
 
 @client.command(name = 'cringe')

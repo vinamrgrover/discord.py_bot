@@ -101,7 +101,36 @@ async def cat(ctx):
         url = 'https://api.thecatapi.com/v1/images/search'
         json_response = requests.get(url, headers = headers).json()[0]
         image = json_response['url']
-        await ctx.send(image)
+        await ctx.sendimage
+
+
+@client.command(name = 'cringe')
+async def cringe(ctx):
+    url_one = 'https://indian-jokes-api.herokuapp.com/jokes/random'
+    url_two = 'https://hindi-jokes-api.onrender.com/jokes'
+
+    embed = Embed(
+        color = 0xEDFF17,
+        title = "Here's a Cringe WhatsApp joke"
+    )
+
+    json_one = requests.get(url_one).json()
+    json_two = requests.get(url_two).json()
+
+    joke_content = random.choice([json_one['text'], json_two['jokeContent']])
+
+    embed.add_field(name = 'JOKE:', value = joke_content, inline = False)
+
+    await ctx.send(embed = embed)
+
+
+@client.command(name = 'insult')
+async def dank(ctx, person):
+    url = 'https://evilinsult.com/generate_insult.php?lang=en&type=json'
+    json_response = requests.get(url).json()
+    insult = json_response['insult']
+    print(insult)
+    await ctx.send(person + ', ' + insult)
 
 
 @client.event

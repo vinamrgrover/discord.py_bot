@@ -1,5 +1,5 @@
 from nextcord.ext import commands
-import nextcord
+import nextcord, re
 import random, os, json, requests
 from dotenv import load_dotenv
 from nextcord import Embed, ButtonStyle
@@ -95,7 +95,7 @@ async def dog(ctx):
 @client.command(name = 'cat')
 async def cat(ctx):
     load_dotenv(dotenv_path = '../key.env')
-    api_key = os.getenv('API_KEY')
+    api_key = os.getenv('CAT_API_KEY')
     headers = {'x-api-key' : api_key}
     if api_key is not None:
         url = 'https://api.thecatapi.com/v1/images/search'
@@ -106,6 +106,12 @@ async def cat(ctx):
 
 @client.command(name = 'cringe')
 async def cringe(ctx):
+
+    def get_joke(url, key): # to speed up the response time
+        json_response = requests.get(url).json()
+        joke_content = json_response[key]
+        return joke_content
+
     url_one = 'https://indian-jokes-api.herokuapp.com/jokes/random'
     url_two = 'https://hindi-jokes-api.onrender.com/jokes'
 
@@ -114,23 +120,56 @@ async def cringe(ctx):
         title = "Here's a Cringe WhatsApp joke"
     )
 
-    json_one = requests.get(url_one).json()
-    json_two = requests.get(url_two).json()
+    joke = random.choice([get_joke(url_one, 'text'), get_joke(url_two, 'jokeContent')])
 
-    joke_content = random.choice([json_one['text'], json_two['jokeContent']])
-
-    embed.add_field(name = 'JOKE:', value = joke_content, inline = False)
+    embed.add_field(name = 'JOKE:', value = joke, inline = False)
 
     await ctx.send(embed = embed)
 
 
 @client.command(name = 'insult')
-async def dank(ctx, person):
+async def insult(ctx, person):
     url = 'https://evilinsult.com/generate_insult.php?lang=en&type=json'
     json_response = requests.get(url).json()
     insult = json_response['insult']
-    print(insult)
     await ctx.send(person + ', ' + insult)
+
+
+@client.command(name = 'weather')
+async def weather(ctx, location):
+    load_dotenv(dotenv_path = '../key.env')
+    api_key = os.getenv('WEATHER_API_KEY')
+    url = f'https://api.weatherapi.com/v1/current.json?key={api_key}&q={location}'
+
+    embed = Embed(
+        color = 0x00FFFF,
+        title = "Weather for " + location
+    )
+    error_response = {"error":{"code":1006,"message":"No matching location found."}}
+
+    json_response = requests.get(url).json()
+
+    embed.add_field(
+        name = 'Celsius: ',
+        value = str(json_response['current']['temp_c']) + ' C',
+        inline = False
+        )
+
+    embed.add_field(
+        name = 'Fahrenheit',
+        value = str(json_response['current']['temp_f']) + ' F',
+        inline = False
+    )
+
+    icon = "https:" + json_response['current']['condition']['icon']
+
+    embed.set_thumbnail(url = icon)
+
+    if json_response != error_response: # for validating location name
+        await ctx.send(embed = embed)
+
+    else:
+        await ctx.send('Please enter a valid location name!')
 
 
 @client.event

@@ -1,7 +1,13 @@
 {
-    "Essential Commands" :
+
+    "Fun Commands" :
     {
-        "help" : "Displays a wonderful command help menu!"
+        "ping" : "Shows your network latency (ping)",
+        "toss" : "Flip a Coin!",
+        "dog" : "Get a cute Doggo pic!",
+        "cat" : "Get a cute Kitty pic!",
+        "insult @person_name" : "Insult a specific person",
+        "cringe" : "Cringe Joke"
     },
 
     "Basic Commands" :
@@ -9,11 +15,9 @@
         "hey" : "Otter will greet you!"
     },
 
-    "Fun Commands" :
+    "Essential Commands" :
     {
-        "ping" : "Shows your network latency (ping)",
-        "toss" : "Flip a Coin!",
-        "dog" : "Get a cute Doggo pic!",
-        "cat" : "Get a cute Kitty pic!"
+        "help" : "Displays a wonderful command help menu!"
     }
+
 }

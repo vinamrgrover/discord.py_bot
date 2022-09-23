@@ -1,5 +1,5 @@
 from nextcord.ext import commands
-import nextcord, re
+import nextcord, re, discord
 import random, os, json, requests
 from dotenv import load_dotenv
 from nextcord import Embed, ButtonStyle
@@ -17,7 +17,7 @@ except Exception as e:
 
 @client.command(name = 'hey')
 async def hey(ctx):
-    await ctx.send(f'Hey {ctx.author.name}!')
+    await ctx.send(f'Hey {ctx.author.mention}!')
 
 
 @client.command(name = 'toss', aliases = ['TOSS', 'Toss'])
@@ -40,7 +40,7 @@ except Exception as e:
 def createHelpPages(page : int):
     page = page % len(help_commands)  # to avoid out of range
     title = list(help_commands)[page]
-    embed = Embed(color = 0xFF512C, title = title)
+    embed = Embed(color = discord.Color.blurple(), title = title)
     for key, val in help_commands[title].items():
         embed.add_field(name = client.command_prefix + key, value = val, inline = False)
         embed.set_footer(text = f'Page {page + 1} of {len(help_commands)}')
@@ -61,9 +61,9 @@ async def help(ctx):
         current_page -= 1
         await sent_message.edit(embed = createHelpPages(current_page), view = help_view)
 
-    next_button = Button(label = '>', style = ButtonStyle.danger)
+    next_button = Button(label = '>', style = ButtonStyle.blurple)
     next_button.callback = next_callback
-    prev_button = Button(label = '<', style = ButtonStyle.danger)
+    prev_button = Button(label = '<', style = ButtonStyle.blurple)
     prev_button.callback = prev_callback
 
     help_view = View(timeout=100)
@@ -82,6 +82,7 @@ async def temp(ctx):
     view.add_item(button)
 
     message_sent = await ctx.send(embed = embed, view = view)
+
 
 
 @client.command(name = 'dog')
@@ -131,8 +132,9 @@ async def cringe(ctx):
 async def insult(ctx, person):
     url = 'https://evilinsult.com/generate_insult.php?lang=en&type=json'
     json_response = requests.get(url).json()
-    insult = json_response['insult']
-    await ctx.send(person + ', ' + insult)
+    insult_content = json_response['insult']
+    person = person + ', '
+    await ctx.send(f'{person}{insult_content}')
 
 
 @client.command(name = 'weather')
@@ -145,37 +147,123 @@ async def weather(ctx, location):
         color = 0x00FFFF,
         title = "Weather for " + location
     )
-    error_response = {"error":{"code":1006,"message":"No matching location found."}}
 
     json_response = requests.get(url).json()
 
+    error_response = {"error": {"code": 1006, "message": "No matching location found."}}
+
+    if json_response == error_response:
+        await ctx.send('Please enter a valid location name!')
+
+    variables = {
+        "temp_c" : str(json_response['current']['temp_c']) + ' C',
+        "temp_f" : str(json_response['current']['temp_f']) + ' F',
+        "Condition" : str(json_response['current']['condition']['text']),
+        "icon" : "https:" + json_response['current']['condition']['icon'],
+    }
+
     embed.add_field(
         name = 'Celsius: ',
-        value = str(json_response['current']['temp_c']) + ' C',
+        value = variables['temp_c'],
         inline = False
         )
 
     embed.add_field(
-        name = 'Fahrenheit',
-        value = str(json_response['current']['temp_f']) + ' F',
+        name = 'Fahrenheit: ',
+        value = variables['temp_f'],
         inline = False
     )
 
-    icon = "https:" + json_response['current']['condition']['icon']
+    embed.add_field(
+        name = 'Condition: ',
+        value = variables['Condition'],
+        inline = False
+    )
 
-    embed.set_thumbnail(url = icon)
+    embed.set_thumbnail(url = variables['icon'])
 
-    if json_response != error_response: # for validating location name
-        await ctx.send(embed = embed)
+    await ctx.send(embed = embed)
 
+
+@client.command(name = 'gay')
+async def gay(ctx, *args : discord.Mentionable):
+    images = {
+        'pic_1' : 'https://c.tenor.com/MDByA_41JrUAAAAC/chakke-gay.gif',
+        'pic_2' : 'https://i.pinimg.com/originals/73/b5/e7/73b5e75f41944cf3794995cd343d565f.gif',
+        'pic_3' : 'https://c.tenor.com/QDi3u5djy_8AAAAC/gay-ha.gif'
+    }
+
+    json_file = json.load(open('../responses.json'))
+    responses_args = json_file['Gay']['list']
+    responses = json_file['Gay']['list_personal']
+
+    percentage  = random.randrange(101)
+
+    if len(args) == 0:
+        embed = Embed(
+            color = discord.Color.random(),
+            description = random.choice(responses).format(percentage)
+        )
     else:
-        await ctx.send('Please enter a valid location name!')
+        args = args[0]
+        embed = Embed(
+            color = discord.Color.random(),
+            description = random.choice(responses_args).format(args, percentage)
+        )
+
+    if percentage > 80:
+        url = images['pic_1']
+    elif percentage > 50:
+        url = images['pic_2']
+    else:
+        url = images['pic_3']
+
+    embed.set_image(url = url)
+
+    await ctx.send(embed = embed)
 
 
-@client.event
+@client.command(name = 'cool')
+async def cool(ctx):
+
+    json_file = json.load(open('../responses.json'))
+    responses = json_file['Cool']['list_personal']
+
+    percentage = random.randrange(101)
+
+    embed = Embed(
+        color = discord.Color.random(),
+        description = random.choice(responses).format(percentage)
+    )
+
+    await ctx.send(embed = embed)
+
+
+@client.command(name = 'dadjoke')
+async def dadjoke(ctx):
+
+    url = 'https://icanhazdadjoke.com/'
+    json_response = requests.get(url, headers={"Accept": "application/json"}).json()
+
+    joke =  '**' + json_response['joke'] + '**'
+
+    embed = Embed(
+        color=discord.Color.random(),
+        description = joke
+    )
+
+    await ctx.send(embed = embed)
+
+
+@client.slash_command(name = 'fortune', description = 'Know your luck')
+async def fortune(ctx : nextcord.Interaction, question : str):
+    json_file = json.load(open('../responses.json'))
+    responses = json_file['fortune']['list']
+    await ctx.response.send_message(f'**User: **{question}\n**Response: **{random.choice(responses)}')
+
+
 async def on_ready():
     print(f'{client.user.name} is ready!')
-
 
 try:
     load_dotenv(dotenv_path = 'path.env')
@@ -185,3 +273,5 @@ try:
         TOKEN.close()
 except Exception as e:
     print(e)
+
+

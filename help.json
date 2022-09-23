@@ -2,22 +2,24 @@
 
     "Fun Commands" :
     {
-        "ping" : "Shows your network latency (ping)",
-        "toss" : "Flip a Coin!",
         "dog" : "Get a cute Doggo pic!",
         "cat" : "Get a cute Kitty pic!",
         "insult @person_name" : "Insult a specific person",
-        "cringe" : "Cringe Joke"
+        "cringe" : "Cringe Joke",
+        "gay" : "Gay Meter \uD83D\uDE33",
+        "cool" : "How cool are you?"
     },
 
     "Basic Commands" :
     {
-        "hey" : "Otter will greet you!"
+        "hey" : "Otter will greet you!",
+        "weather <location_name>" : "Get the weather for your location!",
+        "toss" : "Flip a Coin!"
     },
-
     "Essential Commands" :
     {
-        "help" : "Displays a wonderful command help menu!"
+        "help" : "Displays a wonderful command help menu!",
+        "ping" : "Shows your network latency (ping)"
     }
 
 }

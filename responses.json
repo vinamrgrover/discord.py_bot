@@ -1,0 +1,23 @@
+{
+  "fortune" : {
+    "list" : ["As I see it, yes.", "Ask again later.", "Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.",
+             "Don’t count on it.", "It is certain.", "It is decidedly so.", "Most likely.", "My reply is no.", "My sources say no.",
+             "Outlook not so good.", "Outlook good.", "Reply hazy, try again.", "Signs point to yes.", "Very doubtful.", "Without a doubt.",
+             "Yes.", "Yes – definitely.", "You may rely on it."]
+  },
+
+  "Gay" : {
+    "list" : ["**{} is {}% GAY**", "**OMG {} is {}% GAY**", "**CONGRATULATIONS {} IS {}% GAY OUT OF 100%**", "**{} 's GAY METER IS {}%**",
+    "**{} IS JUST {}% GAY**", "**{} IMAGINE BEING {}% GAY IN 2022**"],
+
+    "list_personal" : ["**You're a big {}% GAY**", "**OMG Your GAY METER is {}%!**", "**Why are you {}% GAY**", "**SIKE You're {}% GAY**",
+    "**Don't be sad you're just {}% GAY**", "**CONGRATULATIONS!, You're an Exceptional {}% GAY!**"]
+  },
+
+  "Cool" :
+  {
+    "list_personal" : ["You're just {}% COOL", "{}% COOL, NICE", "OMG You're {}% COOL", "CONGRATULATIONS {}% COOL PERSON!",
+    "{}% COOL, You're a Symbol of COOLNESS", "You're {}% COOL, Are you a Freezer?", "HOW SAD You're Just {}% COOL",
+      "Don't Worry at least You're {}% COOL"]
+  }
+}

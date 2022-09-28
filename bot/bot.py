@@ -4,11 +4,17 @@ import random, os, json, requests
 from dotenv import load_dotenv
 from nextcord import Embed, ButtonStyle
 from nextcord.ui import Button, View
+import sqlite3 as sql
+import datetime
+
 
 try:
 
     intents = nextcord.Intents.default()
     intents.message_content = True
+    intents.members = True
+    intents.presences = True
+
     client = commands.Bot(command_prefix = '!', intents = intents)
 
 except Exception as e:
@@ -76,6 +82,9 @@ async def help(ctx):
 # for testing button
 @client.command(name = 'temp')
 async def temp(ctx):
+    print(ctx.author.mention)
+    print(ctx.author.avatar)
+
     embed = Embed(color = 0xFF512C, title = 'Sample')
     button = Button(label = '>', style = ButtonStyle.blurple)
     view = View(timeout = 100)
@@ -223,7 +232,7 @@ async def gay(ctx, *args : discord.Mentionable):
     await ctx.send(embed = embed)
 
 
-@client.command(name = 'cool')
+client.command(name = 'cool')
 async def cool(ctx):
 
     json_file = json.load(open('../responses.json'))
@@ -262,8 +271,171 @@ async def fortune(ctx : nextcord.Interaction, question : str):
     await ctx.response.send_message(f'**User: **{question}\n**Response: **{random.choice(responses)}')
 
 
+def verify_profile(user_id) -> bool:
+    try:
+        conn = sql.connect('../db/database.db')
+        cur = conn.cursor()
+        query = f"""
+        SELECT * FROM USER_INFO
+        WHERE ID = "{user_id}";
+        """
+
+    except sql.Error as e:
+        print(e)
+
+    cur.execute(query)
+
+    if cur.fetchall() == list():  # if the result is an empty list
+        return False
+    else:
+        return True
+
+
+@client.slash_command(name = 'whois', description = 'Get user\'s info(use /profile to create your\'s')
+async def whois(ctx : discord.Interaction, user_id : discord.Member):
+
+    def get_status(member : discord.Member):
+        if str(member.status) ==  'online':
+            return True
+
+        return False
+
+    get_status(user_id)
+
+    try:
+        conn = sql.connect("../db/database.db")
+        cur = conn.cursor()
+
+        discord_tag = user_id.name + '#' + user_id.discriminator
+        print(discord_tag)
+
+
+        query = f"""
+        SELECT * FROM USER_INFO 
+        WHERE ID = {user_id.id}
+        """
+
+        print(query)
+
+        cur.execute(query)
+
+        try:
+            res = cur.fetchall()[0]
+        except:
+            res = tuple()
+
+        if len(res) == 0:
+            await ctx.send("***No records found!***")
+
+        else:
+            name = str(user_id.name) + '\'s '
+
+            embed = Embed(title = f'{name} Profile'.capitalize(), color = discord.Color.green())
+
+            embed.add_field(name = '**Name: **', value = res[1])
+
+            embed.add_field(name = '**About: **', value = res[2])
+
+            embed.add_field(name = '**Fav Emoji: **', value = res[3], inline = False)
+
+            embed.set_footer(text = f'DATE CREATED: {res[4]}')
+
+            embed.add_field(name = '**Account created on: **', value = user_id.created_at.date())
+
+            embed.set_author(name = 'Otter Profile', icon_url = user_id.avatar)
+
+            embed.add_field(name = 'Status', value = '*Online*' if get_status(user_id) else '*Offline*')
+
+            avatar = user_id.avatar
+
+            if avatar is None:
+                avatar = user_id.default_avatar
+
+            embed.set_thumbnail(url = avatar)
+
+            await ctx.send(embed = embed)
+
+        print(res, type(res))
+
+    except sql.Error as e:
+        print(e)
+
+
+@client.slash_command(name = 'profile', description = 'create your own "whois" profile')
+async def profile(ctx, name : str, about_you : str, emoji):
+    try:
+        conn = sql.connect("../db/database.db")
+        cur = conn.cursor()
+
+        query = """
+        INSERT INTO USER_INFO VALUES
+        (?, ?, ?, ?, ?)
+        """
+
+        user_id = ctx.user.id
+
+        if verify_profile(user_id):
+            await ctx.send("**Profile already exists**")
+
+        else:
+            cur.execute(query, (user_id, name, about_you, emoji, datetime.date.today()))
+
+            conn.commit() # committing the changes
+
+            cur.execute("SELECT * FROM USER_INFO")
+
+            print(cur.fetchall())
+
+            conn.close()
+
+            await ctx.send(f'Profile for user {ctx.user.mention} successfully created!')
+
+    except sql.Error as e:
+        await ctx.send('OOPS Something wrong happened please try again')
+        print(e)
+
+
+@client.command(name = 'test')
+async def test_mention(ctx, user_id : discord.Member):
+    print(user_id.id)
+    print(user_id.status)
+
+    print(ctx.author.id)
+    discord_tag = user_id.name + '#' + user_id.discriminator
+    if verify_profile(discord_tag) is True:
+        await ctx.send("SUCCESS")
+    else:
+        await ctx.send("FAILED")
+
+
+@client.event
 async def on_ready():
+    try:
+        conn = sql.connect('../db/database.db')
+        cur = conn.cursor()
+
+        cur.execute("""
+        DROP TABLE IF EXISTS USER_INFO;
+        """)
+
+        conn.commit()
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS USER_INFO
+        (            
+            ID BIGINT PRIMARY KEY, 
+            NAME VARCHAR(20), 
+            DESCRIPTION VARCHAR(100), 
+            FAV_EMOJI VARCHAR(30), 
+            DATE_CREATED DATE
+        ); 
+        """)
+
+    except sql.Error as e:
+        print(e)
+
     print(f'{client.user.name} is ready!')
+
 
 try:
     load_dotenv(dotenv_path = 'path.env')
@@ -273,5 +445,4 @@ try:
         TOKEN.close()
 except Exception as e:
     print(e)
-
 

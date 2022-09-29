@@ -232,7 +232,7 @@ async def gay(ctx, *args : discord.Mentionable):
     await ctx.send(embed = embed)
 
 
-client.command(name = 'cool')
+@client.command(name = 'cool')
 async def cool(ctx):
 
     json_file = json.load(open('../responses.json'))

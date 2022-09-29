@@ -268,8 +268,7 @@ async def dadjoke(ctx):
 async def fortune(ctx : nextcord.Interaction, question : str):
     json_file = json.load(open('../responses.json'))
     responses = json_file['fortune']['list']
-    await ctx.response.send_message(f'**User: **{question}\n**Response: **{random.choice(responses)}')
-
+    await ctx.response.send_message(f'***User: ***{question}\n***Response: ***{random.choice(responses)}')
 
 def verify_profile(user_id) -> bool:
     try:
@@ -291,16 +290,14 @@ def verify_profile(user_id) -> bool:
         return True
 
 
-@client.slash_command(name = 'whois', description = 'Get user\'s info(use /profile to create your\'s')
-async def whois(ctx : discord.Interaction, user_id : discord.Member):
+@client.slash_command(name = 'whois', description = 'Get user\'s info (use /profile to create your\'s')
+async def whois(ctx, user_id : discord.Member):
 
     def get_status(member : discord.Member):
         if str(member.status) ==  'online':
             return True
 
         return False
-
-    get_status(user_id)
 
     try:
         conn = sql.connect("../db/database.db")
@@ -328,7 +325,7 @@ async def whois(ctx : discord.Interaction, user_id : discord.Member):
             await ctx.send("***No records found!***")
 
         else:
-            name = str(user_id.name) + '\'s '
+            name = str(user_id.display_name) + '\'s '
 
             embed = Embed(title = f'{name} Profile'.capitalize(), color = discord.Color.green())
 
@@ -362,7 +359,12 @@ async def whois(ctx : discord.Interaction, user_id : discord.Member):
 
 
 @client.slash_command(name = 'profile', description = 'create your own "whois" profile')
-async def profile(ctx, name : str, about_you : str, emoji):
+async def profile(ctx, discord_id : discord.User,  name : str, about_you : str, emoji):
+
+    if discord_id.id != ctx.user.id:
+        await ctx.send("***You can only create a profile for yourself!***")
+        return
+
     try:
         conn = sql.connect("../db/database.db")
         cur = conn.cursor()
@@ -408,6 +410,35 @@ async def test_mention(ctx, user_id : discord.Member):
         await ctx.send("FAILED")
 
 
+@client.slash_command(name = 'delete', description = 'Delete your Otter profile')
+async def delete(ctx, user_id : discord.Member):
+
+    if ctx.user.id != user_id.id:
+        await ctx.send('***You don\'t have the permission to Delete this profile***')
+        return
+
+    try:
+        print(ctx.user.id, user_id.id)
+        conn = sql.connect('../db/database.db')
+        cur = conn.cursor()
+
+        id = user_id.id
+
+        query = f"""
+        DELETE FROM USER_INFO
+        WHERE ID = {id};
+        """
+
+        cur.execute(query)
+        conn.commit()
+
+        await ctx.send('**Profile Successfully Deleted**')
+
+    except sql.Error as e:
+        await ctx.send("An Error Occurred")
+        print(e)
+
+
 @client.event
 async def on_ready():
     try:
@@ -430,6 +461,7 @@ async def on_ready():
             DATE_CREATED DATE
         ); 
         """)
+
 
     except sql.Error as e:
         print(e)

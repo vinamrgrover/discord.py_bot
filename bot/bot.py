@@ -3,10 +3,10 @@ import nextcord, re, discord
 import random, os, json, requests
 from dotenv import load_dotenv
 from nextcord import Embed, ButtonStyle
-from nextcord.ui import Button, View
+from nextcord.ui import Button, View, Select
 import sqlite3 as sql
-import datetime
-
+import datetime, ast
+from bs4 import BeautifulSoup
 
 try:
 
@@ -262,6 +262,97 @@ async def dadjoke(ctx):
     )
 
     await ctx.send(embed = embed)
+
+
+@client.command(name = 'quiz')
+async def quiz(ctx : discord.Interaction):
+    url = 'https://opentdb.com/api.php?amount=1&difficulty=easy&type=boolean'
+    response = requests.get(url).content
+    soup = BeautifulSoup(response)
+    content = str(soup.find('p').contents[0])
+
+    new_dict = ast.literal_eval(content)
+
+    question = new_dict['results'][0]['question']
+
+    class trueButton(Button):
+        def __init__(self, label):
+            super().__init__(label = label, style = ButtonStyle.success)
+
+    class falseButton(Button):
+        def __init__(self, label):
+            super().__init__(label = label, style = ButtonStyle.danger)
+
+    embed = Embed(title = "Quiz", description = '***' + question + '***')
+    true_button = trueButton('True')
+    false_button = falseButton('False')
+
+    def check_true(d):
+        ans = d['results'][0]['correct_answer']
+        print(ans)
+        if ans == "True":
+            return True
+
+        return False
+
+
+    def check_false(d):
+        ans = d['results'][0]['correct_answer']
+        print(ans)
+
+        if ans == 'False':
+            return True
+
+        return False
+
+
+    async def true_callback(interaction):
+        false_button.disabled = True
+        true_button.disabled = True
+        if check_true(new_dict):
+            await ctx.send('***Correct Answer!***')
+            #view.stop()
+            true_button.disabled = True
+            true_button.callback = answered_callback
+            false_button.callback = answered_callback
+        else:
+            await ctx.send('***Incorrect Answer :(***')
+            #view.stop()
+            true_button.callback = answered_callback
+            false_button.callback = answered_callback
+        #await ctx.edit('change content')
+        #true_button.disabled = True
+        #false_button.disabled = True
+
+    async def false_callback(interaction):
+        true_button.disabled = True
+        false_button.disabled = True
+
+        if check_false(new_dict):
+            await ctx.send('***Correct Answer!***')
+
+            true_button.callback = answered_callback
+            false_button.callback = answered_callback
+
+        else:
+            await ctx.send('***Incorrect Answer :(***')
+
+            true_button.callback = answered_callback
+            false_button.callback = answered_callback
+
+    async def answered_callback(interaction):
+        await ctx.send("***Already Answered!***")
+
+    true_button.callback = true_callback
+    false_button.callback = false_callback
+
+
+    view = View()
+    view.add_item(true_button)
+    view.add_item(false_button)
+
+
+    await ctx.send(embed = embed, view = view)
 
 
 @client.slash_command(name = 'fortune', description = 'Know your luck')
